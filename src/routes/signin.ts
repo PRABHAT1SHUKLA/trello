@@ -1,38 +1,59 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
+import zod from 'zod'
+import { PrismaClient } from '@prisma/client';
 
-const Jwt_Pass = "1234567";
+
+const JWT_SECRET = "12345"
 const router = Router();
+const prisma = new PrismaClient();
 
-const users = [
-  {
-    id: 1,
-    username: "prabhat",
-    password: "123"
-  },
-  {
-    id: 2,
-    username: "aditya",
-    password: "123"
+const signinbody = zod.object({
+    email  :    zod.string(),
+    password :   zod.string().min(8).max(32)
+})
+
+router.post("/signin", async(req, res) => {
+  const { email,password } = req.body;
+
+  const {success} = await signinbody.safeParse(req.body) 
+
+  if(success){
+    
+    const  registered = await prisma.user.findFirst({
+        where:{
+            email: email
+        }
+    })
+
+    if(registered){
+        const userId = registered.id;
+
+        const token = await jwt.sign(
+            {userId}, JWT_SECRET
+        )
+
+        return res.status(200).json({
+            message:`welcome ${registered.name}` ,
+            token : token
+        })
+    }
+
+    else {
+        return res.status(401).json({
+          message:"user doesn't exists . Kindly log in."
+
+         })
+    }}
+
+
+    else{
+
+        return res.status(411).json({message:"Invalid inputs"})
+
+    }
+    
   }
-];
-
-function userExists(username: string, password: string) {
-  return users.some(user => user.username === username && user.password === password);
-}
-
-router.post("/signin", (req, res) => {
-  const { username, password } = req.body;
-
-  if (!userExists(username, password)) {
-    return res.status(401).send("Invalid username or password");
-  }
-
-  const token = jwt.sign({ username: username }, Jwt_Pass);
-
-  return res.json({
-    token: token
-  });
-});
+);
 
 export default router;

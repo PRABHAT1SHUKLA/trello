@@ -6,6 +6,7 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import compression from "compression";
 import authRoutes from "./routes/signin"
+import signRoutes from "./routes/signup"
 
 
 
@@ -21,6 +22,8 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/auth",authRoutes )
+
+app.use("/auth",signRoutes)
 
 
 app.get("/",(req:any ,res: any)=>{
