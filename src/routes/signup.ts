@@ -3,6 +3,7 @@ import zod from "zod";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken"
 
+
 const JWT_SECRET = "12345"
 const prisma = new PrismaClient();
 
